@@ -1,16 +1,192 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 	<head>
-		<title>Daniel Bateman</title>
-		<link rel="stylesheet" href="style/reset.css"/>
-		<link rel="stylesheet" href="style/main.css"/>
+		<meta charset="utf-8" />
+		<meta http-equiv="x-ua-compatible" content="ie=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link
+			rel="stylesheet"
+			href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+			integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+			crossorigin="anonymous"
+		/>
+		<title>Camera Test</title>
 	</head>
 
 	<body>
-		<div class="container">
-			<h1>I love you Andrea!</h1>
-		</div>
+		<main id="camera" class="">
+			<!-- Camera View -->
+			<video id="camera--view"></video>
 
+			<!-- Camera Target -->
+			<canvas id="camera--target"></canvas>
 
+			<!-- Camera Sensor-->
+			<canvas id="camera--sensor" style="display: none"></canvas>
+
+			<!-- Camera Output -->
+			<img src="//:O" alt="" id="camera--output" />
+
+			<!-- Camera Buttons-->
+			<button id="camera--button">Take Photo</button>
+			<button id="camera--stop">Add Target</button>
+			<a href="#" id="camera--download" download="photo.png"
+				>Download Photo</a
+			>
+		</main>
+
+		<script>
+			var constraints = {
+				video: {
+					width: {
+						min: 1280,
+						ideal: 1920,
+						max: 1920
+					},
+					height: {
+						min: 720,
+						ideal: 1080,
+						max: 1080
+					},
+					facingMode: 'user'
+				},
+				audio: false
+			};
+
+			const cameraView = document.querySelector('#camera--view'),
+				cameraOutput = document.querySelector('#camera--output'),
+				cameraSensor = document.querySelector('#camera--sensor'),
+				cameraTarget = document.querySelector('#camera--target'),
+				cameraButton = document.querySelector('#camera--button'),
+				cameraStop = document.querySelector('#camera--stop'),
+				cameraDownload = document.querySelector('#camera--download');
+
+			cameraView.setAttribute('autoplay', '');
+			cameraView.setAttribute('muted', '');
+			cameraView.setAttribute('playsinline', '');
+
+			function cameraStart() {
+				navigator.mediaDevices
+					.getUserMedia(constraints)
+					.then(function(stream) {
+						cameraView.srcObject = stream;
+					});
+			}
+
+			function drawTarget() {
+				cameraTarget.width = cameraView.videoWidth;
+				cameraTarget.height = cameraView.videoHeight;
+				var ctx = cameraTarget.getContext('2d');
+				ctx.lineWidth = 8;
+				ctx.beginPath();
+
+				ctx.moveTo(100, 75);
+				ctx.lineTo(30, 75);
+				ctx.lineTo(30, cameraTarget.height - 75);
+				ctx.lineTo(100, cameraTarget.height - 75);
+
+				ctx.moveTo(cameraTarget.width - 100, 75);
+				ctx.lineTo(cameraTarget.width - 30, 75);
+				ctx.lineTo(cameraTarget.width - 30, cameraTarget.height - 75);
+				ctx.lineTo(cameraTarget.width - 100, cameraTarget.height - 75);
+
+				ctx.strokeStyle = '#0892D0';
+				ctx.stroke();
+			}
+
+			cameraButton.onclick = function() {
+				cameraSensor.width = cameraView.videoWidth;
+				cameraSensor.height = cameraView.videoHeight;
+				cameraSensor
+					.getContext('2d')
+					.drawImage(
+						cameraView,
+						30,
+						75,
+						cameraView.videoWidth - 60,
+						cameraView.videoHeight - 150,
+						0,
+						0,
+						cameraView.videoWidth - 60,
+						cameraView.videoHeight - 150
+					);
+				outputFile = cameraSensor.toDataURL();
+				cameraOutput.src = outputFile;
+				cameraOutput.classList.add('taken');
+				cameraDownload.href = outputFile;
+			};
+
+			cameraStop.onclick = function() {
+				drawTarget();
+			};
+
+			window.addEventListener('load', cameraStart, false);
+		</script>
+
+		<style>
+			#camera--view,
+			#camera--sensor,
+			#camera--target {
+				position: absolute;
+				top: 0;
+				left: 0;
+				object-fit: none;
+			}
+			#camera--output {
+				position: fixed;
+				left: 0;
+				top: 0;
+			}
+			#camera--view,
+			#camera--sensor {
+				z-index: 1;
+			}
+			#camera--target {
+				z-index: 2;
+				background-color: transparent;
+			}
+			#camera--view,
+			#camera--sensor,
+			#camera--target,
+			#camera--output {
+				transform: scaleX(-1);
+				filter: FlipH;
+			}
+			#camera--button,
+			#camera--stop,
+			#camera--download {
+				width: 200px;
+				background-color: black;
+				color: white;
+				font-size: 16px;
+				border-radius: 30px;
+				border: none;
+				padding: 15px 20px;
+				text-align: center;
+			}
+			#camera--button {
+				position: fixed;
+				bottom: 30px;
+				left: calc(50% - 200px);
+				z-index: 3;
+			}
+			#camera--stop {
+				position: fixed;
+				bottom: 30px;
+				left: calc(50%);
+				z-index: 3;
+			}
+			#camera--download {
+				position: fixed;
+				bottom: 30px;
+				left: calc(50% + 200px);
+				z-index: 3;
+			}
+			.taken {
+				bottom: 20px;
+				left: 20px;
+				z-index: 3;
+			}
+		</style>
 	</body>
 </html>
